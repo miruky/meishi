@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="logo-title">
+  <title id="logo-title">meishi - 名刺のロゴ</title>
+  <style>
+    .bg { fill: #f5f4f1; }
+    .ink { stroke: #26241f; }
+    .accent { stroke: #2f6690; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #181817; }
+      .ink { stroke: #e9e7e2; }
+      .accent { stroke: #7fb3d8; }
+    }
+  </style>
+  <rect class="bg" width="128" height="128" rx="28"/>
+  <g fill="none" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <rect class="ink" x="20" y="36" width="88" height="56" rx="8"/>
+    <path class="accent" d="M20 50h12" stroke-width="8"/>
+    <path class="ink" d="M44 60h40"/>
+    <path class="ink" d="M44 74h26"/>
+  </g>
+</svg>
