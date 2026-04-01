@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 330" role="img" aria-labelledby="arch-title">
+  <title id="arch-title">meishiの構成図。入力フォームの内容から名刺SVGとOGP SVGを生成し、localStorageに保存する。</title>
+  <style>
+    .box { fill: #fdfdfb; stroke: #e2e0d8; stroke-width: 1.5; }
+    .name { fill: #26241f; font: 600 15px system-ui, sans-serif; }
+    .label { fill: #6e6a60; font: 13px system-ui, sans-serif; }
+    .edge { stroke: #6e6a60; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+    .edge-label { fill: #6e6a60; font: 12px system-ui, sans-serif; }
+    #arrow path { fill: #6e6a60; }
+    @media (prefers-color-scheme: dark) {
+      .box { fill: #222220; stroke: #383732; }
+      .name { fill: #e9e7e2; }
+      .label { fill: #a09c92; }
+      .edge { stroke: #a09c92; }
+      .edge-label { fill: #a09c92; }
+      #arrow path { fill: #a09c92; }
+    }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+  </defs>
+
+  <rect class="box" x="60" y="40" width="220" height="96" rx="14"/>
+  <text class="name" x="170" y="74" text-anchor="middle">フォーム(app.ts)</text>
+  <text class="label" x="170" y="98" text-anchor="middle">名前・肩書・連絡先・</text>
+  <text class="label" x="170" y="118" text-anchor="middle">アクセント色・地色</text>
+
+  <rect class="box" x="330" y="40" width="220" height="96" rx="14"/>
+  <text class="name" x="440" y="74" text-anchor="middle">card.ts</text>
+  <text class="label" x="440" y="98" text-anchor="middle">入力の型・検証・</text>
+  <text class="label" x="440" y="118" text-anchor="middle">localStorageへの保存</text>
+
+  <rect class="box" x="600" y="40" width="220" height="96" rx="14"/>
+  <text class="name" x="710" y="74" text-anchor="middle">svggen.ts</text>
+  <text class="label" x="710" y="98" text-anchor="middle">名刺(364×220)と</text>
+  <text class="label" x="710" y="118" text-anchor="middle">OGP(1200×630)のSVG生成</text>
+
+  <path class="edge" d="M280 88 H322"/>
+  <path class="edge" d="M550 88 H592"/>
+
+  <path class="edge" d="M710 136 V200"/>
+  <text class="edge-label" x="722" y="174">SVG文字列</text>
+
+  <rect class="box" x="550" y="204" width="320" height="84" rx="14"/>
+  <text class="name" x="710" y="238" text-anchor="middle">プレビューとダウンロード</text>
+  <text class="label" x="710" y="262" text-anchor="middle">入力のたびに描き直し、SVGファイルとして保存</text>
+</svg>
