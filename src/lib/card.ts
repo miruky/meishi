@@ -1,5 +1,13 @@
 // 名刺・OGPに載せる情報の型と永続化。描画はsvggen.tsに分離する。
 
+export type FontChoice = 'sans' | 'mincho' | 'mono';
+export type Layout = 'standard' | 'centered';
+export type OgpSize = 'og' | 'square' | 'wide';
+
+export const FONT_CHOICES: readonly FontChoice[] = ['sans', 'mincho', 'mono'];
+export const LAYOUTS: readonly Layout[] = ['standard', 'centered'];
+export const OGP_SIZES: readonly OgpSize[] = ['og', 'square', 'wide'];
+
 export interface CardData {
   /** 名前(必須) */
   name: string;
@@ -13,6 +21,12 @@ export interface CardData {
   accent: string;
   /** 地色を暗くするか */
   dark: boolean;
+  /** 書体の系統 */
+  font: FontChoice;
+  /** 文字の寄せ方 */
+  layout: Layout;
+  /** OGPの寸法プリセット */
+  ogpSize: OgpSize;
 }
 
 const COLOR_RE = /^#[0-9a-f]{6}$/i;
@@ -27,10 +41,20 @@ export function defaultCard(): CardData {
     site: 'https://yamada.dev',
     accent: '#2f6690',
     dark: false,
+    font: 'sans',
+    layout: 'standard',
+    ogpSize: 'og',
   };
 }
 
-export function isCardData(value: unknown): value is CardData {
+function pick<T extends string>(value: unknown, allowed: readonly T[], fallback: T): T {
+  return typeof value === 'string' && (allowed as readonly string[]).includes(value)
+    ? (value as T)
+    : fallback;
+}
+
+/** 必須(コア)項目だけを検証する。後から増えた項目はnormalizeで補う。 */
+function hasCoreFields(value: unknown): value is Record<string, unknown> {
   if (typeof value !== 'object' || value === null) return false;
   const c = value as Record<string, unknown>;
   return (
@@ -46,6 +70,31 @@ export function isCardData(value: unknown): value is CardData {
   );
 }
 
+/**
+ * コア項目を満たす生データを、欠けた項目を既定で補った完全なCardDataにする。
+ * 旧バージョンの保存値や、項目が増える前の共有リンクをそのまま読めるようにする。
+ */
+export function normalizeCard(raw: Record<string, unknown>): CardData {
+  const d = defaultCard();
+  return {
+    name: String(raw.name),
+    sub: String(raw.sub),
+    title: String(raw.title),
+    org: String(raw.org),
+    email: String(raw.email),
+    site: String(raw.site),
+    accent: String(raw.accent),
+    dark: Boolean(raw.dark),
+    font: pick(raw.font, FONT_CHOICES, d.font),
+    layout: pick(raw.layout, LAYOUTS, d.layout),
+    ogpSize: pick(raw.ogpSize, OGP_SIZES, d.ogpSize),
+  };
+}
+
+export function isCardData(value: unknown): value is CardData {
+  return hasCoreFields(value);
+}
+
 export function deserializeCard(json: string): CardData | null {
   let parsed: unknown;
   try {
@@ -53,7 +102,7 @@ export function deserializeCard(json: string): CardData | null {
   } catch {
     return null;
   }
-  return isCardData(parsed) ? parsed : null;
+  return hasCoreFields(parsed) ? normalizeCard(parsed) : null;
 }
 
 export interface CardStore {
