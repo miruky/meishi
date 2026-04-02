@@ -7,10 +7,24 @@
       name="description"
       content="名刺とOGP画像をSVGで作るジェネレータ。名前と肩書を入れるだけで印刷向けの名刺と1200×630のOGPが揃う"
     />
-    <meta name="theme-color" content="#f5f4f1" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#181817" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f4f1ea" />
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <title>meishi | 名刺とOGPのSVGジェネレータ</title>
+    <script>
+      // 描画前に明暗を確定し、ちらつき(FOUC)を防ぐ。app.tsの判定と同じ規則。
+      (function () {
+        try {
+          var pref = localStorage.getItem('meishi.theme.v1');
+          var dark =
+            pref === 'dark' ||
+            ((pref === null || pref === 'system') &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        } catch (e) {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>
