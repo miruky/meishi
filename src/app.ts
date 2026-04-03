@@ -1,7 +1,7 @@
 // 画面の描画。入力はinputイベントで確定し、プレビューだけを差し替える。
 // 刷り上がりを見せるイントロと、編集机(エディタ)で構成する。
 
-import type { CardData, CardStore } from './lib/card';
+import type { CardData, CardStore, FontChoice, Layout, OgpSize } from './lib/card';
 import { defaultCard } from './lib/card';
 import { meishiSvg, ogpSvg } from './lib/svggen';
 import { svgToPngBlob, pngFilename } from './lib/png';
@@ -36,6 +36,29 @@ const ACCENT_PRESETS: ReadonlyArray<readonly [string, string]> = [
   ['#5b4d8c', '菫'],
   ['#8a5a00', '黄土'],
 ];
+
+const FONT_OPTIONS: ReadonlyArray<readonly [FontChoice, string]> = [
+  ['sans', 'ゴシック'],
+  ['mincho', '明朝'],
+  ['mono', '等幅'],
+];
+
+const LAYOUT_OPTIONS: ReadonlyArray<readonly [Layout, string]> = [
+  ['standard', '左寄せ'],
+  ['centered', '中央'],
+];
+
+const OGP_OPTIONS: ReadonlyArray<readonly [OgpSize, string]> = [
+  ['og', '横長'],
+  ['square', '正方形'],
+  ['wide', 'ワイド'],
+];
+
+const OGP_DIM_TEXT: Record<OgpSize, string> = {
+  og: '1200 × 630 px',
+  square: '1200 × 1200 px',
+  wide: '1600 × 900 px',
+};
 
 export interface AppDeps {
   root: HTMLElement;
@@ -136,6 +159,26 @@ export function createApp({ root, store, initialCard }: AppDeps): void {
       </div>`;
   }
 
+  function segmented(
+    field: 'font' | 'layout' | 'ogpSize',
+    label: string,
+    options: ReadonlyArray<readonly [string, string]>,
+    current: string,
+  ): string {
+    const segs = options
+      .map(
+        ([value, text]) =>
+          `<button type="button" role="radio" aria-checked="${value === current}"
+            class="seg ${value === current ? 'active' : ''}" data-seg="${field}" data-value="${value}">${text}</button>`,
+      )
+      .join('');
+    return `
+      <div class="control">
+        <p class="control-label">${label}</p>
+        <div class="segmented" role="radiogroup" aria-label="${label}">${segs}</div>
+      </div>`;
+  }
+
   function themeButton(): string {
     const icon = themePref === 'light' ? icons.sun : themePref === 'dark' ? icons.moon : icons.auto;
     return `<button type="button" id="theme" class="ghost" aria-label="配色: ${themeLabel(themePref)}">
@@ -143,7 +186,7 @@ export function createApp({ root, store, initialCard }: AppDeps): void {
   }
 
   function previewBlock(kind: 'meishi' | 'ogp', heading: string, note: string): string {
-    const dim = kind === 'meishi' ? '91 × 55 mm' : '1200 × 630 px';
+    const dim = kind === 'meishi' ? '91 × 55 mm' : OGP_DIM_TEXT[card.ogpSize];
     return `
       <article class="proof">
         <div class="proof-head">
@@ -241,6 +284,10 @@ export function createApp({ root, store, initialCard }: AppDeps): void {
                 </label>
               </div>
 
+              ${segmented('font', '書体', FONT_OPTIONS, card.font)}
+              ${segmented('layout', '名刺の寄せ方', LAYOUT_OPTIONS, card.layout)}
+              ${segmented('ogpSize', 'OGPの寸法', OGP_OPTIONS, card.ogpSize)}
+
               <div class="form-foot">
                 <button type="button" class="chip" id="share">${icons.link}<span>共有リンクをコピー</span></button>
                 <button type="button" class="chip" id="reset">${icons.refresh}<span>見本に戻す</span></button>
@@ -290,7 +337,7 @@ export function createApp({ root, store, initialCard }: AppDeps): void {
   function bindEvents(): void {
     for (const el of root.querySelectorAll<HTMLInputElement>('[data-field]')) {
       el.addEventListener('input', () => {
-        const key = el.dataset.field as Exclude<keyof CardData, 'dark' | 'accent'>;
+        const key = el.dataset.field as 'name' | 'sub' | 'title' | 'org' | 'email' | 'site';
         card[key] = el.value;
         commitAndPreview();
       });
@@ -311,6 +358,18 @@ export function createApp({ root, store, initialCard }: AppDeps): void {
       card.dark = (e.target as HTMLInputElement).checked;
       commitAndPreview();
     });
+
+    for (const el of root.querySelectorAll<HTMLButtonElement>('[data-seg]')) {
+      el.addEventListener('click', () => {
+        const field = el.dataset.seg as 'font' | 'layout' | 'ogpSize';
+        const value = el.dataset.value ?? '';
+        if (field === 'font') card.font = value as FontChoice;
+        else if (field === 'layout') card.layout = value as Layout;
+        else card.ogpSize = value as OgpSize;
+        store.save(card);
+        render();
+      });
+    }
 
     for (const el of root.querySelectorAll<HTMLButtonElement>('[data-act]')) {
       el.addEventListener('click', () => {
@@ -372,5 +431,24 @@ export function createApp({ root, store, initialCard }: AppDeps): void {
     items.forEach((el) => observer?.observe(el));
   }
 
+  function setupParallax(): void {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let ticking = false;
+    const onScroll = (): void => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const p = Math.min(window.scrollY, 900);
+        const photo = root.querySelector<HTMLElement>('.desk-photo');
+        const sample = root.querySelector<HTMLElement>('.sample-card');
+        if (photo) photo.style.transform = `translateY(${p * 0.06}px) scale(1.12)`;
+        if (sample) sample.style.setProperty('--py', `${p * -0.035}px`);
+        ticking = false;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
   render();
+  setupParallax();
 }
