@@ -386,6 +386,7 @@ section {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transform: scale(1.12);
   filter: grayscale(0.55) brightness(1.03) contrast(0.95);
 }
 
@@ -404,13 +405,14 @@ section {
   position: relative;
   z-index: 1;
   width: min(78%, 360px);
-  transform: rotate(-2.2deg);
+  --py: 0px;
+  transform: translateY(var(--py)) rotate(-2.2deg);
   filter: drop-shadow(var(--card-shadow));
   transition: transform 0.5s var(--ease);
 }
 
 .intro-stage:hover .sample-card {
-  transform: rotate(0deg) scale(1.02);
+  transform: translateY(var(--py)) rotate(0deg) scale(1.02);
 }
 
 .sample-card .preview svg {
@@ -544,6 +546,43 @@ section {
   width: 17px;
   height: 17px;
   accent-color: var(--accent);
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.seg {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    color 0.18s var(--ease),
+    background-color 0.18s var(--ease);
+}
+
+.seg:hover {
+  color: var(--ink);
+}
+
+.seg.active {
+  background: var(--accent);
+  color: var(--paper);
+}
+
+[data-theme='dark'] .seg.active {
+  color: #15140f;
 }
 
 .form-foot {
